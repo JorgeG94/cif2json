@@ -10,8 +10,7 @@ import CifFile
 import numpy as np
 import qcelemental as qcel
 from itertools import permutations
-sys.path.append("/Users/zoes/apps/qcp-python-app/qcp")
-sys.path.append("/g/data/k96/apps/qcp/qcp")
+sys.path.append("/Users/u7430616/Documents/qcp-python-app/qcp")
 from system import systemData
 
 
@@ -109,8 +108,8 @@ def factors_convert_fract2cartes(cif_data):
     # Use the volume to check that we calculated the vectors correctly
     V = ax * by * cz
 
-    # if abs(V - cif_data["_cell_volume"]) > 0.1:
-    #     print("WARNING: Volume calculated with the real vectors is not the same as the volume in CIF file.")
+    if abs(V - cif_data["_cell_volume"]) > 0.1:
+        print("WARNING: Volume calculated with the real vectors is not the same as the volume in CIF file.")
 
     return({"ax": ax, "ay": 0, "az": 0, "bx": bx, "by": by, "bz": 0, "cx": cx, "cy": cy, "cz": cz})
 
@@ -529,7 +528,7 @@ def mol_centroid_in_central_unit_cell(fragments, coords, cif_data, minu, minv, m
             new_atoms.extend(atoms)
 
     # if len(new_atoms) != len(atoms_uc):
-    #     sys.exit(f"Not the same number of atoms in the unit cell ({len(atoms_uc)}) as whole atom unit cell ({len(new_atoms)}). exiting ...")
+     # sys.exit(f"Not the same number of atoms in the unit cell ({len(atoms_uc)}) as whole atom unit cell ({len(new_atoms)}). exiting ...")
 
     return new_atoms
 
@@ -1066,12 +1065,12 @@ def exess_mbe_template(frag_ids, frag_charges, symbols, geometry, method="RIMP2"
                 "ngpus_per_group"       : 4,
                 "lattice_energy_calc"   : True,
                 "reference_monomer"     : ref_mon,
-                "dimer_cutoff"          : 100*angstrom2bohr,
-                "dimer_mp2_cutoff"      : 25*angstrom2bohr,
-                "trimer_cutoff"         : 35*angstrom2bohr,
-                "trimer_mp2_cutoff"     : 20*angstrom2bohr,
-                "tetramer_cutoff"       : 20*angstrom2bohr,
-                "tetramer_mp2_cutoff"   : 10*angstrom2bohr
+                "dimer_cutoff"          : 1000,
+                "dimer_mp2_cutoff"      : 1000,
+                "trimer_cutoff"         : 1000,
+                "trimer_mp2_cutoff"     : 1000,
+                "tetramer_cutoff"       : 1000,
+                "tetramer_mp2_cutoff"   : 1000
             },
             "FMO": {
                 "fmo_type": "CPF",
@@ -1080,7 +1079,7 @@ def exess_mbe_template(frag_ids, frag_charges, symbols, geometry, method="RIMP2"
                 "esp_maxit": 50
             },
             "check_rst": {
-                "checkpoint": True,
+                "checkpoint": False,
                 "restart": False,
                 "nfrag_check": min(ncheck, total_frags),
                 "nfrag_stop": min(nfrag_stop, total_frags)
@@ -1114,18 +1113,32 @@ def make_json_from_frag_ids(frag_indexs, fragList, atmList, nfrag_stop=None, bas
     xyz_lines    = []
     num          = 0
     # FOR EACH FRAGMENT
+    fragments = []
+
+    atom_idx = 0
     for index in frag_indexs:
         num += 1
-        frag_charges.append(fragList[index]['chrg'])
+        # frag_charges.append(fragList[index]['chrg'])
+        frag_charges.append(0)
         # FOR EACH ATOM OF THAT FRAG
+        fragment_atoms = []
         for id in fragList[index]['ids']:
+            fragment_atoms.append(atom_idx)
+            atom_idx += 1
             symbols.append(atmList[id]['sym'])
             frag_ids.append(num)
             geometry.extend([atmList[id]['x'], atmList[id]['y'], atmList[id]['z']])
             xyz_lines.append(f"{atmList[id]['sym']} {atmList[id]['x']} {atmList[id]['y']} {atmList[id]['z']}")
+        fragments.append(fragment_atoms)
     # TO JSON
-    json_dict = exess_mbe_template(frag_ids, frag_charges, symbols, geometry, method, nfrag_stop, basis, auxbasis,
-                                   number_checkpoints, ref_mon=ref_mon, level=level)
+    # json_dict = exess_mbe_template(frag_ids, frag_charges, symbols, geometry, method, nfrag_stop, basis, auxbasis,
+    #                                number_checkpoints, ref_mon=ref_mon, level=level)
+    json_dict = {
+        "symbols": symbols,
+        "geometry": geometry,
+        "formal_fragment_charges": frag_charges,
+        "fragments": fragments
+    }
     json_lines = format_json_input_file(json_dict)
 
     return json_lines, xyz_lines
@@ -1303,6 +1316,7 @@ def main(cif_file, r=100, debug=False, dist_cutoff='smallest', pair_mols="all"):
 
     # Step 4: Get the asymmetric unit from CIF dictionary
     atoms = asym_unit(cif_data)
+    print("\n atoms::::::::::", atoms)
     timer.stop("Step 4 - asymmetric unit")
 
     # Step 5: Create the unit cell with symmetry operations
