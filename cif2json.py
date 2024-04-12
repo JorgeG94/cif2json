@@ -1136,7 +1136,7 @@ def make_json_from_frag_ids(frag_indexs, fragList, atmList, nfrag_stop=None, bas
     json_dict = {
         "symbols": symbols,
         "geometry": geometry,
-        "formal_fragment_charges": frag_charges,
+        "fragment_formal_charges": frag_charges,
         "fragments": fragments
     }
     json_lines = format_json_input_file(json_dict)
