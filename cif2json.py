@@ -758,12 +758,21 @@ def central_frag_with_charge(frag_list, atmList, midpointx, midpointy, midpointz
     for frag in frag_list:
         if frag['chrg'] == charge or charge == "any":
             dist = 0
+            centroid = [0.0, 0.0, 0.0]
             for id in frag['ids']:
                 # DIST
-                dist += distance([midpointx, midpointy, midpointz],
-                                 [atmList[id]['x'], atmList[id]['y'], atmList[id]['z']])
+                # dist += distance([midpointx, midpointy, midpointz],
+                #                  [atmList[id]['x'], atmList[id]['y'], atmList[id]['z']])
+                centroid[0] += atmList[id]['x']
+                centroid[1] += atmList[id]['y']
+                centroid[2] += atmList[id]['z']
             # AVERAGE
-            dist = dist / len(frag['ids'])
+            centroid[0] /= len(frag['ids'])
+            centroid[1] /= len(frag['ids'])
+            centroid[2] /= len(frag['ids'])
+
+
+            dist = distance([midpointx, midpointy, midpointz], centroid)
             # IF SMALLEST DIST
             if dist < min_dist:
                 min_dist  = dist
