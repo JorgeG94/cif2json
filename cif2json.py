@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import glob
+import os
 import sys
 import math
 import json
@@ -10,7 +11,7 @@ import CifFile
 import numpy as np
 import qcelemental as qcel
 from itertools import permutations
-sys.path.append("/Users/u7430616/Documents/qcp-python-app/qcp")
+sys.path.append("/home/jorgegv/work/qcp-python-app/qcp")
 from system import systemData
 
 
@@ -1311,7 +1312,7 @@ def write_file(filename, lines):
 ### MAIN --------------------------------------------
 
 
-def main(cif_file, r=100, debug=False, dist_cutoff='smallest', pair_mols="all"):
+def main(cif_file, r=100, debug=False, dist_cutoff='smallest', pair_mols="all",cif_name="poop"):
 
     timer = Timer(to_print=debug)
 
@@ -1386,8 +1387,8 @@ def main(cif_file, r=100, debug=False, dist_cutoff='smallest', pair_mols="all"):
     nfrag_stop = 500
     json_lines, xyz_lines = make_json_from_frag_ids(list(range(len(fragList))), fragList, atmList,
                                                     ref_mon=center_frag_id, nfrag_stop=nfrag_stop)
-    write_xyz_zoe("sphere.xyz", xyz_lines)
-    write_file("sphere.json", json_lines)
+    write_xyz_zoe(f"{cif_name}.xyz", xyz_lines)
+    write_file(f"{cif_name}.json", json_lines)
 
 
 if __name__ == "__main__":
@@ -1410,4 +1411,5 @@ if __name__ == "__main__":
 
     print("Sphere size:", r)
     print("Cif file:", cif_file)
-    main(cif_file, r, debug=True, dist_cutoff='centroid', pair_mols=pair_mols)
+    cif_name = os.path.splitext(cif_file)[0]
+    main(cif_file, r, debug=True, dist_cutoff='centroid', pair_mols=pair_mols, cif_name=cif_name)
